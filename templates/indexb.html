@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Company B</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .color-change {
+        animation: changeColor 2s infinite;
+      }
+
+      @keyframes changeColor {
+        0% {
+          color: red;
+        }
+        50% {
+          color: blue;
+        }
+        100% {
+          color: red;
+        }
+      }
+
+      /* General body styling */
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #1f2937, #111827);
+        color: #e5e7eb;
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* Main container to hold sidebar and chat */
+      .main-container {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      /* Sidebar styling */
+      .sidebar {
+        width: 240px;
+        background-color: #1f2937;
+        border-right: 1px solid #374151;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      /* User info box */
+      .user-info-box {
+        background-color: #374151;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid #4b5563;
+        text-align: center;
+      }
+
+      .user-info-box h3 {
+        margin: 0 0 0.5rem 0;
+        color: #d1d5db;
+        font-size: 1.1rem;
+      }
+
+      .username {
+        color: #6366f1;
+        font-weight: 600;
+        font-size: 1.2rem;
+      }
+
+      /* Previous chats box */
+      .previous-chats-box {
+        background-color: #374151;
+        border-radius: 1rem;
+        border: 1px solid #4b5563;
+        overflow: hidden;
+      }
+
+      .previous-chats-header {
+        background-color: #4b5563;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.3s ease;
+      }
+
+      .previous-chats-header:hover {
+        background-color: #6366f1;
+      }
+
+      .previous-chats-header h3 {
+        margin: 0;
+        color: #d1d5db;
+        font-size: 1rem;
+      }
+
+      .dropdown-arrow {
+        transition: transform 0.3s ease;
+        color: #d1d5db;
+        font-size: 1.2rem;
+      }
+
+      .dropdown-arrow.rotated {
+        transform: rotate(180deg);
+      }
+
+      /* Dropdown content */
+      .previous-chats-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background-color: #374151;
+      }
+
+      .previous-chats-content.expanded {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .previous-chats-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .previous-chats-list li {
+        background-color: #2b3a4a;
+        padding: 1rem;
+        margin: 0.5rem;
+        border-radius: 0.75rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+        font-size: 0.9rem;
+      }
+
+      .previous-chats-list li b {
+        color: #6366f1;
+      }
+
+      .no-chats {
+        text-align: center;
+        padding: 1.5rem;
+        color: #9ca3af;
+        font-style: italic;
+      }
+
+      /* Content area with sidebar offset */
+      .content-area {
+        flex: 1;
+        margin-left: 300px;
+        display: flex;
+        justify-content: start;
+        align-items: start;
+        padding: 2rem;
+        min-height: 100vh;
+      }
+
+      /* Chatbot container */
+      .chatbot-container {
+        width: 100%;
+        max-width: 800px;
+        background-color: #1f2937;
+        padding: 2.5rem;
+        border-radius: 2rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 1px solid #374151;
+      }
+
+      /* Title styling */
+      h1 {
+        font-size: 2rem;
+        color: #d1d5db;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      /* Chat log styling */
+      #chat-log {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 1rem;
+        margin-bottom: 1.5rem;
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 5%,
+          black 95%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 5%,
+          black 95%,
+          transparent 100%
+        );
+      }
+
+      /* Message bubble styling */
+      .message-bubble {
+        padding: 0.75rem 1rem;
+        border-radius: 1.25rem;
+        max-width: 80%;
+        word-wrap: break-word;
+        font-size: 0.95rem;
+      }
+
+      .user-message {
+        align-self: flex-end;
+        background-color: #6366f1;
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+      }
+
+      .bot-message {
+        align-self: flex-start;
+        background-color: #374151;
+        color: #d1d5db;
+        border-bottom-left-radius: 0.25rem;
+      }
+
+      /* Form styling */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .file-options {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem;
+      }
+
+      .file-button {
+        background-color: #4b5563;
+        color: #d1d5db;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      .file-button:hover {
+        background-color: #6366f1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+      }
+
+      .file-button.selected {
+        background-color: #6366f1;
+        border-color: #6366f1;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.5);
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+        border-radius: 1.5rem;
+        border: 1px solid #4b5563;
+        background-color: #374151;
+        color: #e5e7eb;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+      }
+
+      button[type="submit"] {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 1.5rem;
+        background-color: #6366f1;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+      }
+
+      button[type="submit"]:hover {
+        background-color: #4f46e5;
+        transform: translateY(-2px);
+      }
+
+      button[type="submit"]:active {
+        transform: translateY(0);
+      }
+
+      /* Custom scrollbar */
+      #chat-log::-webkit-scrollbar,
+      .previous-chats-content::-webkit-scrollbar,
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      #chat-log::-webkit-scrollbar-track,
+      .previous-chats-content::-webkit-scrollbar-track,
+      .sidebar::-webkit-scrollbar-track {
+        background: #1f2937;
+        border-radius: 3px;
+      }
+
+      #chat-log::-webkit-scrollbar-thumb,
+      .previous-chats-content::-webkit-scrollbar-thumb,
+      .sidebar::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 3px;
+      }
+
+      #chat-log::-webkit-scrollbar-thumb:hover,
+      .previous-chats-content::-webkit-scrollbar-thumb:hover,
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 1024px) {
+        .sidebar {
+          width: 250px;
+        }
+        .content-area {
+          margin-left: 250px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          z-index: 1000;
+        }
+
+        .sidebar.mobile-open {
+          transform: translateX(0);
+        }
+
+        .content-area {
+          margin-left: 0;
+          padding: 1rem;
+        }
+
+        .chatbot-container {
+          padding: 1.5rem;
+        }
+
+        .mobile-menu-btn {
+          position: fixed;
+          top: 1rem;
+          left: 1rem;
+          z-index: 1001;
+          background-color: #6366f1;
+          color: white;
+          border: none;
+          padding: 0.75rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          font-size: 1.2rem;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+          display: none;
+        }
+
+        .mobile-overlay.active {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile menu button -->
+    <button
+      class="mobile-menu-btn"
+      onclick="toggleMobileSidebar()"
+      style="display: none"
+    >
+      ☰
+    </button>
+
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+    <div class="main-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <!-- User Info Box -->
+        <div class="user-info-box">
+          <h3>Welcome</h3>
+          <div class="username">
+            {{ user_name if user_name else "Guest User" }}
+          </div>
+        </div>
+
+        <!-- Previous Chats Box -->
+        <div class="previous-chats-box">
+          <div class="previous-chats-header" onclick="togglePreviousChats()">
+            <h3>Your Previous Chats</h3>
+            <span class="dropdown-arrow" id="dropdown-arrow">▼</span>
+          </div>
+
+          <div class="previous-chats-content" id="previous-chats-content">
+            {% if q_a %}
+            <ul class="previous-chats-list">
+              {% for chat in q_a %}
+              <li>
+                <b>Q:</b> {{ chat.question }} <br />
+                <b>A:</b> {{ chat.answer }}
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="no-chats">No previous chats found.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="content-area">
+        <div class="chatbot-container">
+          <h1>Chat with your files</h1>
+
+          <div id="chat-log">
+            <div class="message-bubble bot-message">
+              <p class="color-change">
+                Hello! Please Select File For More Accurate Response!
+              </p>
+            </div>
+
+            {% if conversation_history %} {% for exchange in
+            conversation_history %}
+            <div class="message-bubble user-message">
+              <p>{{ exchange.question }}</p>
+            </div>
+            <div class="message-bubble bot-message">
+              <p>{{ exchange.answer }}</p>
+            </div>
+            {% endfor %} {% endif %}
+          </div>
+
+          <form action="/submit" method="post">
+            <div class="file-options">
+              <div
+                class="file-button"
+                data-file="selium_magnificient_version_1"
+              >
+                selium_magnificient_version_1
+              </div>
+              <div class="file-button" data-file="dinosaur">dinosaur</div>
+              <div class="file-button" data-file="Nagasaki">Nagasaki</div>
+            </div>
+
+            <input type="hidden" id="file" name="file" required />
+
+            <input
+              type="text"
+              id="question"
+              name="question"
+              placeholder="Type your question here..."
+              required
+            />
+
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const fileButtons = document.querySelectorAll(".file-button");
+      const hiddenFileInput = document.getElementById("file");
+      const chatLog = document.getElementById("chat-log");
+
+      // Handle file button clicks
+      fileButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          fileButtons.forEach((btn) => btn.classList.remove("selected"));
+          button.classList.add("selected");
+          hiddenFileInput.value = button.dataset.file;
+        });
+      });
+
+      // Toggle previous chats dropdown
+      function togglePreviousChats() {
+        const content = document.getElementById("previous-chats-content");
+        const arrow = document.getElementById("dropdown-arrow");
+
+        if (content.classList.contains("expanded")) {
+          content.classList.remove("expanded");
+          arrow.classList.remove("rotated");
+        } else {
+          content.classList.add("expanded");
+          arrow.classList.add("rotated");
+        }
+      }
+
+      // Mobile sidebar toggle
+      function toggleMobileSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".mobile-overlay");
+
+        sidebar.classList.toggle("mobile-open");
+        overlay.classList.toggle("active");
+      }
+
+      // Handle responsive design
+      function handleResize() {
+        if (window.innerWidth <= 768) {
+          document.querySelector(".mobile-menu-btn").style.display = "block";
+        } else {
+          document.querySelector(".mobile-menu-btn").style.display = "none";
+          document.getElementById("sidebar").classList.remove("mobile-open");
+          document.querySelector(".mobile-overlay").classList.remove("active");
+        }
+      }
+
+      // Initialize page
+      window.onload = function () {
+        const selectedFile = '{{ selected_file if selected_file else "" }}';
+        if (selectedFile) {
+          const button = document.querySelector(
+            `.file-button[data-file="${selectedFile}"]`
+          );
+          if (button) {
+            button.classList.add("selected");
+            hiddenFileInput.value = selectedFile;
+          }
+        }
+
+        chatLog.scrollTop = chatLog.scrollHeight;
+        handleResize();
+      };
+
+      // Handle window resize
+      window.addEventListener("resize", handleResize);
+
+      // Clear input field after form submission
+      document
+        .querySelector('form[action="/submit"]')
+        .addEventListener("submit", function () {
+          setTimeout(() => {
+            document.getElementById("question").value = "";
+          }, 100);
+        });
+    </script>
+  </body>
+</html>
