@@ -3,3 +3,4 @@ env
 __pycache__  
 test.py 
 .env
+all-mpnet-base-v2-local

@@ -13,9 +13,9 @@ print("server connect successfuly")
 model = SentenceTransformer("all-mpnet-base-v2")
 print("embedding model start")
 
-# dataset = "E:/fastapi_rag/suleiman_magnificient.txt"  
-# dataset = "E:/fastapi_rag/dinosaur.txt" 
-dataset = "E:/fastapi_rag/nagasaki.txt"
+dataset = "E:/fastapi_rag/data/suleiman_magnificient.txt"  
+# dataset = "E:/fastapi_rag/data/dinosaur.txt" 
+# dataset = "E:/fastapi_rag/data/nagasaki.txt"
 
 # open dataset 
 with open(dataset, 'r', encoding="utf-8") as f:
@@ -47,8 +47,10 @@ print("chunks created")
 if not client.collection_exists("company_a"):
     client.create_collection(
         collection_name="company_a",
-        vectors_config=VectorParams(size = 384, distance=Distance.COSINE)
+        vectors_config=VectorParams(size = 768, distance=Distance.COSINE)
     )  
+
+
 
 
 if not client.collection_exists("company_b"):
@@ -60,9 +62,9 @@ if not client.collection_exists("company_b"):
 
 
 
-# file_id = "selium_magnificient_version_1" 
+file_id = "selium_magnificient_version_1" 
 # file_id = "dinosaur_version_1" 
-file_id = "Nagasaki_version_1"
+# file_id = "Nagasaki_version_1"
 
 # make data embedding
 embeddings = model.encode(data_chunks)  
@@ -146,15 +148,15 @@ else:
 
 
 # delete a file 
-if not client.collection_exists("company_b"):
+if not client.collection_exists("company_a"):
     client.delete(
-    collection_name="company_b",
+    collection_name="company_a",
     points_selector=models.FilterSelector(filter = models.Filter(must = [models.FieldCondition(key = "file", match=models.MatchValue(value = file_id))]))
 )
 
 
 # delete a whole collection 
-if not client.collection_exists("company_b"):
+if not client.collection_exists("company_a"):
     client.delete_collection(collection_name="company_b")    
 
     

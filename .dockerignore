@@ -1,0 +1,9 @@
+qdrant_storage 
+env 
+__pycache__  
+test.py 
+.env
+main.py 
+search_results.py 
+templates/index.html 
+E:\fastapi_rag\data

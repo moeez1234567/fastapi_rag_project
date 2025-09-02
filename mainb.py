@@ -20,8 +20,9 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 # 
 app = FastAPI() 
-encoded_model = SentenceTransformer("all-mpnet-base-v2") 
-client = QdrantClient("http://localhost:6333")  
+encoded_model = SentenceTransformer("/app/all-mpnet-base-v2-local") 
+encoded_model.save("/app/all-mpnet-base-v2-local")
+client = QdrantClient(host="optimistic_greider", port=6333)
 
 
 #
@@ -34,13 +35,6 @@ client = QdrantClient("http://localhost:6333")
 # class UserLogin(BaseModel):
 #     username : str 
 #     password : str
-
-# gen_model = "microsoft/phi-2"
-# tokenizer = AutoTokenizer.from_pretrained(gen_model)
-# model = AutoModelForCausalLM.from_pretrained(gen_model)
-
-
-# model = HuggingFaceEndpoint(endpoint_url=f"https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1", task="text-generation", max_new_tokens=500, temperature=0.2, huggingfacehub_api_token=token)
 def db_session():
     db = session_local()
     try:
@@ -103,8 +97,7 @@ async def login(request : Request, username : str = Form(...), password : str = 
         
 
 
-conversation_history = [] 
-user_chat = []
+session_chats = {}
 
 
 
@@ -132,13 +125,13 @@ async def data_process(request : Request, question : str = Form(...), file : str
     db.add(new_chat)
     db.commit()  
 
+    
+    if user_id not in session_chats:
+        session_chats[user_id] = [] 
+    session_chats[user_id].append({"question":question, "answer": response.choices[0].message.content})
 
-    conversation_history.append(
-        {"question" : question,
-         "answer" : response.choices[0].message.content}
-    ) 
-
-    # user_chat.append(db.query(Chat).filter(Chat.user_id == int(user_id)).all())
+    # user_chat.append(db.query(Chat).filter(Chat.user_id == int(user_id)).all()) 
+    
     
     return RedirectResponse(url="/", status_code=303)  
 
@@ -152,9 +145,10 @@ async def get_page(request : Request, db : Session =  Depends(db_session)):
         return templates.TemplateResponse("password.html", {"request": request, "message": "Sign-Up Required"})
     else:
         q_a = db.query(Chat).filter(Chat.user_id == int(user_id)).all()  
-        user_name = db.query(User).filter(User.id == int(user_id)).first() 
+        user_name = db.query(User).filter(User.id == int(user_id)).first()  
+        user_history = session_chats.get(user_id, [])
 
-    return templates.TemplateResponse("indexb.html", {"request": request, "q_a" : q_a, "conversation_history": conversation_history, "user_name" : user_name.username})  
+    return templates.TemplateResponse("indexb.html", {"request": request, "q_a" : q_a, "conversation_history": user_history, "user_name" : user_name.username})  
 
 
 

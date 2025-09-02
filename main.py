@@ -7,6 +7,9 @@ from sentence_transformers import SentenceTransformer
 import uvicorn 
 from fastapi.templating import Jinja2Templates  
 from fastapi.responses import HTMLResponse, JSONResponse 
+
+
+
 from openai import OpenAI 
 from dotenv import load_dotenv 
 import os
@@ -32,8 +35,6 @@ model = OpenAI(
 )
 
 
-
-# model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 
 # tokenizer = AutoTokenizer.from_pretrained(model_name)
 # model = AutoModelForCausalLM.from_pretrained(model_name) 
