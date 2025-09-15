@@ -13,7 +13,9 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker, Session
 #     port = "5432"
 # )  replace 
 
-sqlchemy_database_url = "postgresql://postgres:bkkb1234@my-postgres2:5432/ChatsPasswords"
+# sqlchemy_database_url = "postgresql://postgres:bkkb1234@my-postgres2:5432/ChatsPasswords" 
+
+sqlchemy_database_url = "postgresql://postgres:bkkb&1234@localhost:5432/Chats&Passwords" # for testing
 
 
 print("connection with postgres")
@@ -48,12 +50,17 @@ class Chat(base):
 
 
 
-# save = int(input("Enter 1 to save all tables : "))
+# save = int(input("Enter 1 to save all tables : "))\scripts\activate
+
 
 
 # if save == 1: 
-# base.metadata.create_all(bind = engine) 
 
+
+if __name__ == "__main__":
+    print("connection to postgres")
+    base.metadata.create_all(bind = engine) 
+    print("tables created successfully ! ")
 
 
 

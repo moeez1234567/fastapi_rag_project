@@ -7,4 +7,6 @@ sqlalchemy
 jinja2
 psycopg2-binary   
 python-dotenv 
-openai
+openai 
+PyPDF2 
+python-docx

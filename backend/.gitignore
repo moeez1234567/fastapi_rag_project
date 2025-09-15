@@ -3,4 +3,5 @@ env
 __pycache__  
 test.py 
 .env
-all-mpnet-base-v2-local
+all-mpnet-base-v2-local 
+my-fastapi-rag.tar  
