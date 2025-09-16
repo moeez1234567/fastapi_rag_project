@@ -130,7 +130,7 @@ async def login(request: SigninRequest, db: Session = Depends(db_session)):
     return response
 
 
-session_chats = {}
+# session_chats = {}
 
 
 @app.post("/submit")
@@ -141,7 +141,6 @@ async def data_process(
     user_id = 2
     if user_id is None: 
         return {"message": "please sign in"} 
-        print(user_id)
     search = client.search(
         collection_name="company_c",
         query_vector=encode,
