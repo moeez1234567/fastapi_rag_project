@@ -22,8 +22,8 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 #
 app = FastAPI()
-encoded_model = SentenceTransformer("all-mpnet-base-v2")
-encoded_model.save("/app/all-mpnet-base-v2-local")
+encoded_model = SentenceTransformer("app/all-mpnet-base-v2-local")
+# encoded_model.save("/app/all-mpnet-base-v2-local")
 
 
 

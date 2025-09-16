@@ -1,0 +1,49 @@
+# node image 
+FROM  node:22 AS build 
+
+
+# copy everything in the app so there docker image store everything
+WORKDIR /app 
+
+
+
+# copy all requirements inside the package.json 
+COPY package*.json ./   
+
+
+# run npm to create all the react packages
+RUN npm install  
+
+
+# copy everything from the project and the docker 
+COPY . . 
+
+
+
+
+# running build
+RUN npm run build 
+
+
+
+# nginx is a react server like uvicorn in fastapi, alpine is a small linix image to run this nginx 
+FROM nginx:alpine  
+
+
+
+# move the files inside the docker app and the build so nginx can serve this file to the user as css/tsx/html 
+COPY --from=build /app/build /usr/share/nginx/html  
+
+
+# expose the react app on 80 port 
+EXPOSE 80 
+
+
+
+# start the nginx server 
+CMD ["nginx", "-g", "daemon off;"]
+
+
+
+
+
