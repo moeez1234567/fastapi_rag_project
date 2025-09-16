@@ -43,4 +43,8 @@
 #     print("how i help you : ")
 
 
+from sentence_transformers import SentenceTransformer  
 
+encode_model = SentenceTransformer("all-mpnet-base-v2")
+encode_model.save("./app/all-mpnet-base-v2-local") 
+print("model is save")

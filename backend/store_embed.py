@@ -119,7 +119,7 @@ async def encode_text(chunks):
 async def qdrant_f(user_id : str = Cookie(None), file : UploadFile = File(...)):
     client = QdrantClient(url="http://localhost:6333")  
     results =  await text_encode(file)
-    file_id = results.get("file_id") 
+    file_id = results.get("file_id")
     if file_id is None:
         file_id = str(uuid.uuid4())
     

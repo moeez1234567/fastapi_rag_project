@@ -18,7 +18,7 @@ RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 RUN  pip install -r requirements.txt 
 
 
-COPY all-mpnet-base-v2-local /app/all-mpnet-base-v2-local
+COPY app/all-mpnet-base-v2-local ./app/all-mpnet-base-v2-local
 
 
 # Copy whole project 
