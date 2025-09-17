@@ -46,7 +46,7 @@ app.add_middleware(
 
 
 # client = QdrantClient(host="optimistic_greider", port=6333)
-client = QdrantClient(host =  "localhost", port = 6333)  # its for testing
+client = QdrantClient(host =  "qdrant", port = 6333)  # its for testing
 
 
 #

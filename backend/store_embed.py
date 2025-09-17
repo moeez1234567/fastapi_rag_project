@@ -118,7 +118,7 @@ async def encode_text(chunks):
 # feed dataset qdrant 
 @app.post("/upload_file")
 async def qdrant_f(user_id : int = Depends(get_current_user), file : UploadFile = File(...)):
-    client = QdrantClient(url="http://localhost:6333")  
+    client = QdrantClient(url="http://qdrant:6333")  
     results =  await text_encode(file)
     file_id = results.get("file_id")
     if file_id is None:
