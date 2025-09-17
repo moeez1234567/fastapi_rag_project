@@ -1,10 +1,22 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./upload.css";
-import { ArrowLeft, Upload as UploadIcon, FileText, X, Check, Sparkles, Cloud, User, ChevronDown, History, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload as UploadIcon,
+  FileText,
+  X,
+  Check,
+  Sparkles,
+  Cloud,
+  User,
+  ChevronDown,
+  History,
+  Star,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface UserData {
-  q_a: Array<{question: string, answer: string}>;
+  q_a: Array<{ question: string; answer: string }>;
   user_name: string;
   points: string[];
 }
@@ -22,30 +34,50 @@ const Upload: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Particle animation effect
-  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
+  const [particles, setParticles] = useState<
+    Array<{ id: number; x: number; y: number; delay: number }>
+  >([]);
 
   useEffect(() => {
-    // Generate particles for background animation
-    const newParticles = Array.from({length: 20}, (_, i) => ({
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      delay: Math.random() * 3
+      delay: Math.random() * 3,
     }));
     setParticles(newParticles);
 
-    // Fetch user history
     fetchUserHistory();
   }, []);
 
   const fetchUserHistory = async () => {
     try {
       setIsLoadingUser(true);
-      const response = await fetch("http://localhost:8001/user_history");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No token found, skipping history fetch");
+        setIsLoadingUser(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:8001/user_history", {
+        headers: {
+          Authorization: `Bearer ${token}`, // send token instead of cookie
+        },
+      });
+
       if (response.ok) {
         const data = await response.json();
-        setUserData(data);
+        if (data.points) {
+          setUserData(data);
+        } else {
+          setUserData({
+            q_a: [],
+            user_name: data.user_name || "Guest",
+            points: [],
+          });
+        }
       } else {
         console.error("Failed to fetch user history");
       }
@@ -86,7 +118,7 @@ const Upload: React.FC = () => {
   const simulateProgress = () => {
     setUploadProgress(0);
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           return 100;
@@ -108,18 +140,26 @@ const Upload: React.FC = () => {
     formData.append("file", selectedFile);
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in first!");
+        return;
+      }
+
       const response = await fetch("http://localhost:9001/upload_file", {
         method: "POST",
         body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`, // send JWT in header
+        },
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Ensure progress completes
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (response.ok) {
         const data = await response.json();
         setUploadedFileName(data.filename);
         setShowSuccess(true);
-        // Refresh user history to get updated file list
         fetchUserHistory();
         setTimeout(() => setShowSuccess(false), 3000);
       } else {
@@ -146,23 +186,23 @@ const Upload: React.FC = () => {
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName.split(".").pop()?.toLowerCase();
     switch (extension) {
-      case 'pdf':
+      case "pdf":
         return <FileText size={20} className="file-icon-pdf" />;
-      case 'txt':
+      case "txt":
         return <FileText size={20} className="file-icon-txt" />;
-      case 'docx':
+      case "docx":
         return <FileText size={20} className="file-icon-docx" />;
-      case 'csv':
+      case "csv":
         return <FileText size={20} className="file-icon-csv" />;
       default:
         return <FileText size={20} />;
@@ -171,16 +211,16 @@ const Upload: React.FC = () => {
 
   return (
     <div className="upload-container">
-      {/* Enhanced Animated Background */}
+      {/* background animation */}
       <div className="background-animation">
-        {particles.map(particle => (
+        {particles.map((particle) => (
           <div
             key={particle.id}
             className="particle"
             style={{
               left: `${particle.x}%`,
               top: `${particle.y}%`,
-              animationDelay: `${particle.delay}s`
+              animationDelay: `${particle.delay}s`,
             }}
           />
         ))}
@@ -191,14 +231,13 @@ const Upload: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Header with User Info */}
+      {/* header with user info */}
       <header className="upload-header">
         <div className="header-content">
           <button className="back-button" onClick={() => navigate("/chat")}>
-            <ArrowLeft size={18} /> 
-            <span>Back to Chat</span>
+            <ArrowLeft size={18} /> <span>Back to Chat</span>
           </button>
-          
+
           <div className="header-info">
             <div className="bot-avatar">
               <Cloud size={28} />
@@ -209,11 +248,12 @@ const Upload: React.FC = () => {
                 <Sparkles size={20} className="sparkle-icon" />
                 Smart File Upload
               </h2>
-              <span className="status">Drag, drop, and let the magic happen</span>
+              <span className="status">
+                Drag, drop, and let the magic happen
+              </span>
             </div>
           </div>
 
-          {/* User Profile Section */}
           <div className="user-profile">
             {isLoadingUser ? (
               <div className="user-loading">
@@ -221,7 +261,7 @@ const Upload: React.FC = () => {
               </div>
             ) : userData ? (
               <div className="user-info">
-                <button 
+                <button
                   className="user-button"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
                 >
@@ -230,9 +270,16 @@ const Upload: React.FC = () => {
                   </div>
                   <div className="user-details">
                     <span className="user-name">{userData.user_name}</span>
-                    <span className="user-files">{userData.points.length} files</span>
+                    <span className="user-files">
+                      {userData.points?.length || 0} files
+                    </span>
                   </div>
-                  <ChevronDown size={16} className={`dropdown-icon ${showUserDropdown ? 'rotated' : ''}`} />
+                  <ChevronDown
+                    size={16}
+                    className={`dropdown-icon ${
+                      showUserDropdown ? "rotated" : ""
+                    }`}
+                  />
                 </button>
 
                 {showUserDropdown && (
@@ -242,7 +289,7 @@ const Upload: React.FC = () => {
                       <span>Your Files</span>
                     </div>
                     <div className="user-files-list">
-                      {userData.points.length > 0 ? (
+                      {userData.points && userData.points.length > 0 ? (
                         userData.points.map((fileName, index) => (
                           <div key={index} className="dropdown-file-item">
                             {getFileIcon(fileName)}
@@ -265,17 +312,16 @@ const Upload: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content - Side by Side Layout */}
+      {/* main content */}
       <div className="upload-content">
-        {/* Upload Section - Left Side */}
         <section className="upload-section">
-          <div className="section-header">
-            <h3>Upload Your File Take Some Time</h3>
-            <p>Transform your documents into searchable knowledge</p>
-          </div>
-
+          {/* file input */}
           <label
-            className={`upload-zone ${isDragOver ? 'drag-over' : ''} ${isUploading ? 'uploading' : ''} ${selectedFile ? 'has-file' : ''}`}
+            className={`upload-zone ${
+              isDragOver ? "drag-over" : ""
+            } ${isUploading ? "uploading" : ""} ${
+              selectedFile ? "has-file" : ""
+            }`}
             htmlFor="fileInput"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -316,7 +362,6 @@ const Upload: React.FC = () => {
                 </div>
               )}
             </div>
-            
             <input
               ref={fileInputRef}
               id="fileInput"
@@ -327,24 +372,13 @@ const Upload: React.FC = () => {
             />
           </label>
 
-          {/* Upload Progress */}
-          {isUploading && (
-            <div className="upload-progress-container">
-              <div className="upload-progress">
-                <div 
-                  className="progress-bar" 
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-              <span className="progress-text">{Math.round(uploadProgress)}% uploaded</span>
-            </div>
-          )}
-
-          {/* Upload Button */}
+          {/* upload button */}
           <button
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
-            className={`upload-button ${isUploading ? 'uploading' : ''} ${showSuccess ? 'success' : ''}`}
+            className={`upload-button ${
+              isUploading ? "uploading" : ""
+            } ${showSuccess ? "success" : ""}`}
           >
             {isUploading ? (
               <>
@@ -365,7 +399,7 @@ const Upload: React.FC = () => {
           </button>
         </section>
 
-        {/* Files Section - Right Side */}
+        {/* right side - files */}
         <section className="files-section">
           <div className="files-header">
             <h3>
@@ -373,12 +407,14 @@ const Upload: React.FC = () => {
               Your Files
             </h3>
             <div className="files-count">
-              {userData ? `${userData.points.length} files` : "0 files"}
+              {userData
+                ? `${userData.points?.length || 0} files`
+                : "0 files"}
             </div>
           </div>
 
           <div className="files-list">
-            {!userData || userData.points.length === 0 ? (
+            {!userData || !userData.points || userData.points.length === 0 ? (
               <div className="no-files">
                 <div className="no-files-illustration">
                   <Cloud size={64} className="cloud-icon" />
@@ -389,12 +425,22 @@ const Upload: React.FC = () => {
                   </div>
                 </div>
                 <h4>Your uploaded files will appear here</h4>
-                <p>Upload your first document to get started with AI-powered search and analysis</p>
+                <p>
+                  Upload your first document to get started with AI-powered
+                  search and analysis
+                </p>
               </div>
             ) : (
               <div className="files-grid">
                 {userData.points.map((fileName, index) => (
-                  <div key={index} className={`file-item ${uploadedFileName === fileName ? 'success-animation' : 'success'}`}>
+                  <div
+                    key={index}
+                    className={`file-item ${
+                      uploadedFileName === fileName
+                        ? "success-animation"
+                        : "success"
+                    }`}
+                  >
                     <div className="file-info">
                       <div className="file-icon">
                         {getFileIcon(fileName)}
@@ -408,17 +454,18 @@ const Upload: React.FC = () => {
                             Ready for AI Analysis
                           </span>
                           <span className="upload-time">
-                            {uploadedFileName === fileName ? 'Just now' : 'Previously uploaded'}
+                            {uploadedFileName === fileName
+                              ? "Just now"
+                              : "Previously uploaded"}
                           </span>
                         </div>
                       </div>
                     </div>
                     <button
                       className="remove-file"
-                      onClick={() => {
-                        // Handle file removal here if needed
-                        console.log('Remove file:', fileName);
-                      }}
+                      onClick={() =>
+                        console.log("Remove file:", fileName)
+                      }
                       title="Remove file"
                     >
                       <X size={16} />

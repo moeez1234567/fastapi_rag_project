@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";  // 👈 add this
+import { useNavigate } from "react-router-dom";
 import "./login.css";
 
 interface AuthProps {
@@ -17,9 +17,8 @@ const Sign_in: React.FC<AuthProps> = ({ onAuthSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [messageType, setMessageType] = useState<"success" | "error">("success");
 
-  const navigate = useNavigate(); // 👈 create navigate hook
+  const navigate = useNavigate();
 
-  // Auto slide to sign in after successful sign up
   useEffect(() => {
     if (message.includes("successfuly Sign-Up")) {
       setTimeout(() => {
@@ -91,17 +90,19 @@ const Sign_in: React.FC<AuthProps> = ({ onAuthSuccess }) => {
           username: formData.username,
           password: formData.password,
         }),
-        credentials: "include",
       });
 
       const data = await response.json();
       setMessage(data.message);
 
-      if (data.message === "Login Successful !") {
+      if (data.message === "User Login SuccFully" && data.access_token) {
+        // ✅ Save token for later use
+        localStorage.setItem("token", data.access_token);
+
         setMessageType("success");
         setTimeout(() => {
           onAuthSuccess();
-          navigate("/chat"); // 👈 go to Chat.tsx
+          navigate("/chat");
         }, 1500);
       } else {
         setMessageType("error");
@@ -119,6 +120,7 @@ const Sign_in: React.FC<AuthProps> = ({ onAuthSuccess }) => {
     setMessage("");
     setFormData({ username: "", email: "", password: "" });
   };
+
   return (
     <div className="auth-container">
       <div className="auth-background">

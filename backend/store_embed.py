@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Cookie, Depends
+from fastapi import FastAPI, UploadFile, File, Cookie, Depends, Header, HTTPException
 from qdrant_client import QdrantClient 
 from qdrant_client.models import VectorParams, Distance, PointStruct, Filter, FieldCondition, MatchValue
 from qdrant_client.http import models
@@ -11,8 +11,9 @@ import docx
 from typing import Optional   
 from connections import session_local, Session, User, Chat
 from fastapi.middleware.cors import CORSMiddleware 
-import uvicorn
-
+import uvicorn 
+import jwt
+from mainb import get_current_user
 
 
 # opening db 
@@ -38,7 +39,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or ["http://localhost:3000"] for stricter rules
+    allow_origins=["http://localhost:3000",  "http://127.0.0.1:3000" ],  # or ["http://localhost:3000"] for stricter rules
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -116,7 +117,7 @@ async def encode_text(chunks):
 
 # feed dataset qdrant 
 @app.post("/upload_file")
-async def qdrant_f(user_id : str = Cookie(None), file : UploadFile = File(...)):
+async def qdrant_f(user_id : int = Depends(get_current_user), file : UploadFile = File(...)):
     client = QdrantClient(url="http://localhost:6333")  
     results =  await text_encode(file)
     file_id = results.get("file_id")
@@ -126,7 +127,7 @@ async def qdrant_f(user_id : str = Cookie(None), file : UploadFile = File(...)):
     chunk_text = results.get("text")
     if chunk_text is None:
         return {"message" : "There is No Text In This File Or Failted To Load Text"}
-    user_id = 2
+    # user_id = 2
     if user_id is None:
         return {"message" : "Sign_In first for upload file"}
     exist = client.scroll(collection_name = "company_c", scroll_filter = Filter(must = [FieldCondition(key = "file", match = MatchValue(value = file_id)), FieldCondition(key = "user_id", match=MatchValue(value = user_id))])) 

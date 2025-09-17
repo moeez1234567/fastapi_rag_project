@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, Depends, Cookie
+from fastapi import FastAPI, Request, Form, Depends, Cookie, Header, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
@@ -12,13 +12,22 @@ from pydantic import BaseModel
 from connections import session_local, Session, User, Chat
 import os
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware 
+import jwt
 
 
 #
 load_dotenv()
 
-HF_TOKEN = os.getenv("HF_TOKEN")
+# model token
+HF_TOKEN = os.getenv("HF_TOKEN") 
+
+
+# secret key of user_id
+SECRET_KEY = os.getenv("SECRET_KEY", "super-secret")  
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+
 
 #
 app = FastAPI()
@@ -29,7 +38,7 @@ encoded_model = SentenceTransformer("app/all-mpnet-base-v2-local")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or ["http://localhost:3000"] for stricter rules
+    allow_origins=["http://localhost:3000" ,  "http://127.0.0.1:3000"],  # or ["http://localhost:3000"] for stricter rules
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,7 +46,7 @@ app.add_middleware(
 
 
 # client = QdrantClient(host="optimistic_greider", port=6333)
-client = QdrantClient(url="http://localhost:6333")  # its for testing
+client = QdrantClient(host =  "localhost", port = 6333)  # its for testing
 
 
 #
@@ -118,27 +127,37 @@ async def login(request: SigninRequest, db: Session = Depends(db_session)):
     if not db_user:
         return {"message": "Invalid Password Or Username"}
     else:
-        response = JSONResponse(content={"message": "Login Successful !"})
-        response.set_cookie(
-            key="user_id",
-            value=str(db_user.id),
-            httponly=True,
-            secure=False,
-            samesite="None"
-        )
+        token = jwt.encode({"user_id" : db_user.id}, SECRET_KEY, algorithm = ALGORITHM) 
 
-    return response
 
+    return {"message" : "User Login SuccFully", "access_token" : token}
+        
 
 # session_chats = {}
+
+# get the current user by their id
+async def get_current_user(authorization : str = Header(...)):
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(statue_code = 401, detail = "Invalid auth scheme") 
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return payload["user_id"] 
+    
+    except Exception as e: 
+        return HTTPException(status_code=401, detail="invalid or expire token")
+
+
 
 
 @app.post("/submit")
 async def data_process(
-    request: UserQuery, user_id: str = Cookie(None), db: Session = Depends(db_session)
+    request: UserQuery, user_id : int = Depends(get_current_user), db: Session = Depends(db_session)
 ):
     encode = encoded_model.encode(request.question).tolist() 
-    user_id = 2
+    # user_id = 2
     if user_id is None: 
         return {"message": "please sign in"} 
     search = client.search(
@@ -192,8 +211,8 @@ async def data_process(
 
 #
 @app.get("/user_history")
-async def get_page(db: Session = Depends(db_session)):
-    user_id = "2"
+async def get_page(user_id : int = Depends(get_current_user) ,db: Session = Depends(db_session)):
+    # user_id = "2"
     if user_id is None:
         return {"message": "Sign-Up Required"}
     else:
@@ -207,6 +226,8 @@ async def get_page(db: Session = Depends(db_session)):
         user_files = [] 
         offset = None  
         
+
+        s = set()
         # for i in range(12):
         while True:
             hits, offset = client.scroll(collection_name = "company_c", scroll_filter= Filter(must = [FieldCondition(key = "user_id", match=MatchValue(value = int(user_id)))]), offset = offset, limit = 100) 
@@ -217,8 +238,14 @@ async def get_page(db: Session = Depends(db_session)):
             s = set(user_files)  
 
             if offset is None:
-                break
+                break 
+
+            
         
+
+            if not s:
+                break
+    
 
 
     return {"q_a": qa_list, "user_name": user_name.username, "points" : s } 

@@ -57,10 +57,12 @@ class Chat(base):
 # if save == 1: 
 
 
-if __name__ == "__main__":
-    print("connection to postgres")
-    base.metadata.create_all(bind = engine) 
-    print("tables created successfully ! ")
+# if __name__ == "__main__":
+#     print("connection to postgres")
+#     base.metadata.create_all(bind = engine) 
+#     print("tables created successfully ! ") 
+
+base.metadata.create_all(bind = engine)
 
 
 

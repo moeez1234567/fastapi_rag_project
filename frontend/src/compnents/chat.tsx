@@ -9,10 +9,9 @@ import {
   FileText,
   MessageSquare,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // <-- Make sure this is imported
+import { useNavigate } from "react-router-dom";
 import "./chat.css";
 
-// Interface definitions remain the same
 interface Message {
   sender: "user" | "bot";
   text: string;
@@ -24,9 +23,9 @@ interface QAItem {
 }
 
 interface UserHistory {
-  q_a: QAItem[];
-  user_name: string;
-  points: string[];
+  q_a?: QAItem[];
+  user_name?: string;
+  points?: string[];
 }
 
 const Chat: React.FC = () => {
@@ -42,7 +41,7 @@ const Chat: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userHistory, setUserHistory] = useState<UserHistory | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate(); // <-- This is the key line to get the navigation function
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,19 +51,19 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Fetch user history on component mount
   useEffect(() => {
     fetchUserHistory();
   }, []);
 
   const fetchUserHistory = async () => {
     try {
+      const token = localStorage.getItem("token"); // 👈 get JWT
       const response = await fetch("http://127.0.0.1:8001/user_history", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // 👈 send JWT
         },
-        credentials: "include",
       });
 
       if (response.ok) {
@@ -89,17 +88,18 @@ const Chat: React.FC = () => {
     setIsTyping(true);
 
     try {
+      const token = localStorage.getItem("token"); // 👈 get JWT
       const response = await fetch("http://127.0.0.1:8001/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // 👈 send JWT
         },
         body: JSON.stringify(
           file.trim()
             ? { question: question, file: file }
             : { question: question }
         ),
-        credentials: "include",
       });
 
       const data = await response.json();
@@ -111,9 +111,7 @@ const Chat: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-
-      // Refresh user history after sending a message
-      fetchUserHistory();
+      fetchUserHistory(); // refresh history
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: Message = {
@@ -142,14 +140,8 @@ const Chat: React.FC = () => {
         sender: "bot",
         text: "Hello! I'm your AI assistant. Feel free to ask me anything!",
       },
-      {
-        sender: "user",
-        text: qaItem.question,
-      },
-      {
-        sender: "bot",
-        text: qaItem.answer,
-      },
+      { sender: "user", text: qaItem.question },
+      { sender: "bot", text: qaItem.answer },
     ]);
   };
 
@@ -159,7 +151,7 @@ const Chat: React.FC = () => {
 
   return (
     <div className="chat-app">
-      {/* Sidebar (unchanged) */}
+      {/* Sidebar */}
       <div className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <div className="user-info">
@@ -180,50 +172,60 @@ const Chat: React.FC = () => {
         </div>
 
         <div className="sidebar-content">
+          {/* Previous Chats */}
           <div className="sidebar-section">
             <div className="section-header">
               <MessageSquare size={16} />
               <h4>Previous Chats</h4>
             </div>
             <div className="chat-history">
-              {userHistory?.q_a.map((qaItem, index) => (
-                <div
-                  key={index}
-                  className="history-item"
-                  onClick={() => loadPreviousChat(qaItem)}
-                >
-                  <div className="history-question">
-                    {qaItem.question.length > 50
-                      ? `${qaItem.question.substring(0, 50)}...`
-                      : qaItem.question}
+              {userHistory?.q_a && userHistory.q_a.length > 0 ? (
+                userHistory.q_a.map((qaItem, index) => (
+                  <div
+                    key={index}
+                    className="history-item"
+                    onClick={() => loadPreviousChat(qaItem)}
+                  >
+                    <div className="history-question">
+                      {qaItem.question.length > 50
+                        ? `${qaItem.question.substring(0, 50)}...`
+                        : qaItem.question}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>No chat history</p>
+              )}
             </div>
           </div>
 
+          {/* Uploaded Files */}
           <div className="sidebar-section">
             <div className="section-header">
               <FileText size={16} />
               <h4>Uploaded Files</h4>
             </div>
             <div className="files-list">
-              {userHistory?.points.map((fileName, index) => (
-                <div
-                  key={index}
-                  className="file-item"
-                  onClick={() => selectFile(fileName)}
-                >
-                  <Paperclip size={14} />
-                  <span className="file-name">{fileName}</span>
-                </div>
-              ))}
+              {userHistory?.points && userHistory.points.length > 0 ? (
+                userHistory.points.map((fileName, index) => (
+                  <div
+                    key={index}
+                    className="file-item"
+                    onClick={() => selectFile(fileName)}
+                  >
+                    <Paperclip size={14} />
+                    <span className="file-name">{fileName}</span>
+                  </div>
+                ))
+              ) : (
+                <p>No files uploaded</p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Chat Container (unchanged) */}
+      {/* Main Chat */}
       <div
         className={`chat-container ${
           sidebarOpen ? "with-sidebar" : "full-width"
@@ -243,9 +245,8 @@ const Chat: React.FC = () => {
               <Bot size={24} />
             </div>
             <div className="header-text">
-              {/* Moved upload button with text */}
               <button
-                onClick={() => navigate("/upload")} // <-- 'navigate' is now correctly defined here
+                onClick={() => navigate("/upload")}
                 className="upload-button"
               >
                 <Paperclip size={20} />
@@ -293,7 +294,7 @@ const Chat: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Updated Input Box */}
+        {/* Input Box */}
         <div className="input-box">
           <div className="input-container">
             {file && (
@@ -314,9 +315,8 @@ const Chat: React.FC = () => {
                   onChange={(e) => setQuestion(e.target.value)}
                   onKeyDown={handleKeyPress}
                   className="question-input"
-                  rows={1} // Keep rows at 1 for a shorter input box initially
+                  rows={1}
                 />
-
                 <button
                   onClick={sendMessage}
                   className="send-button"
