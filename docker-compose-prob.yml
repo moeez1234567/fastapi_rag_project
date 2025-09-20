@@ -1,8 +1,8 @@
+version: "3.9"
+
 services:
   backend1:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: moizshamshad/backend1:latest
     ports:
       - "8001:8001"
     depends_on:
@@ -12,11 +12,10 @@ services:
       - .env
     networks:
       - mynetwork
+    command: uvicorn mainb:app --host 0.0.0.0 --port 8001 --reload
 
   backend2:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.app2
+    image: moizshamshad/backend2:latest
     ports:
       - "9001:9001"
     depends_on:
@@ -26,11 +25,10 @@ services:
       - .env
     networks:
       - mynetwork
+    command: uvicorn store_embed:app --host 0.0.0.0 --port 9001 --reload
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: moizshamshad/frontend:latest
     ports:
       - "3000:80"
     networks:
@@ -50,7 +48,7 @@ services:
       - mynetwork
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: moizshamshad/qdrant:latest
     volumes:
       - qdrant_data:/qdrant/storage
     ports:

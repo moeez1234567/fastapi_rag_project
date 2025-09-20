@@ -46,7 +46,7 @@ const Sign_in: React.FC<AuthProps> = ({ onAuthSuccess }) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8001/submit_pass", {
+      const response = await fetch("http://13.127.7.32:8001/submit_pass", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,7 +83,7 @@ const Sign_in: React.FC<AuthProps> = ({ onAuthSuccess }) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8001/login", {
+      const response = await fetch("http://13.127.7.32:8001/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

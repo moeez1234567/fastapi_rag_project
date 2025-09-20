@@ -1,5 +1,5 @@
-# from qdrant_client import QdrantClient 
-# from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client import QdrantClient
+from qdrant_client.models import Filter, FieldCondition, MatchValue, VectorParams, Distance
 # from sentence_transformers import SentenceTransformer
 
 
@@ -10,6 +10,8 @@
 # model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # ende = model.encode(query).tolist()
+
+
 
 
 # choice_1 = int(input("press 1 for seeing your question results")) 
@@ -43,8 +45,16 @@
 #     print("how i help you : ")
 
 
-from sentence_transformers import SentenceTransformer  
+# from sentence_transformers import SentenceTransformer  
 
-encode_model = SentenceTransformer("all-mpnet-base-v2")
-encode_model.save("./app/all-mpnet-base-v2-local") 
-print("model is save")
+# encode_model = SentenceTransformer("all-mpnet-base-v2")
+# encode_model.save("./app/all-mpnet-base-v2-local") 
+# print("model is save")  
+
+
+# making a new collection 
+client = QdrantClient(host="localhost", port=6333) 
+
+client.create_collection(collection_name="company_c", vectors_config=VectorParams(size = 768, distance=Distance.COSINE))
+print("collection is created")
+

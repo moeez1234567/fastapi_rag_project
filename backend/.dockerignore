@@ -2,11 +2,13 @@ qdrant_storage
 env 
 __pycache__  
 test.py 
-.env
 main.py 
 search_results.py 
-templates/index.html 
+templates
 E:\fastapi_rag\data
 my-fastapi-app.tar 
 data 
-main.py
+main.py 
+.gitignore 
+backend/my-fastapi-rag.tar 
+my-fastapi-rag.tar

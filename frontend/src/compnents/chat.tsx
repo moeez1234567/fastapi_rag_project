@@ -58,7 +58,7 @@ const Chat: React.FC = () => {
   const fetchUserHistory = async () => {
     try {
       const token = localStorage.getItem("token"); // 👈 get JWT
-      const response = await fetch("http://127.0.0.1:8001/user_history", {
+      const response = await fetch("http://13.127.7.32:8001/user_history", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const Chat: React.FC = () => {
 
     try {
       const token = localStorage.getItem("token"); // 👈 get JWT
-      const response = await fetch("http://127.0.0.1:8001/submit", {
+      const response = await fetch("http://13.127.7.32:8001/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

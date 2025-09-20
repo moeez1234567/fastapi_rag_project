@@ -61,7 +61,7 @@ const Upload: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:8001/user_history", {
+      const response = await fetch("http://13.127.7.32:8001/user_history", {
         headers: {
           Authorization: `Bearer ${token}`, // send token instead of cookie
         },
@@ -146,7 +146,7 @@ const Upload: React.FC = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:9001/upload_file", {
+      const response = await fetch("http://13.127.7.32:9001/upload_file", {
         method: "POST",
         body: formData,
         headers: {

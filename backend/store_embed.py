@@ -39,12 +39,17 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",  "http://127.0.0.1:3000" ],  # or ["http://localhost:3000"] for stricter rules
+    allow_origins=[
+        "http://13.127.7.32",       # if HTTP
+        "https://13.127.7.32",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://13.127.7.32:3000"  # add your EC2 frontend URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # connect 
 # client = QdrantClient(host="optimistic_greider", port=6333)
@@ -110,7 +115,7 @@ async def data_chunks(data : str, chunk_size = 200, chunk_overlap = 50):
 # encode_model = SentenceTransformer("/app/all-mpnet-base-v2-local") 
 
 async def encode_text(chunks):
-    encode_model = SentenceTransformer("all-mpnet-base-v2") 
+    encode_model = SentenceTransformer("app/all-mpnet-base-v2-local") 
     encode_data = encode_model.encode(chunks).tolist()
     return encode_data
 
@@ -118,7 +123,7 @@ async def encode_text(chunks):
 # feed dataset qdrant 
 @app.post("/upload_file")
 async def qdrant_f(user_id : int = Depends(get_current_user), file : UploadFile = File(...)):
-    client = QdrantClient(url="http://localhost:6333")  
+    client = QdrantClient(host="qdrant", port=6333)  
     results =  await text_encode(file)
     file_id = results.get("file_id")
     if file_id is None:
@@ -304,7 +309,7 @@ async def qdrant_f(user_id : int = Depends(get_current_user), file : UploadFile 
 
 
 def main():
-    uvicorn.run("store_embed:app", host="127.0.0.1", port = 9001, reload = True) 
+    uvicorn.run("store_embed:app", host="0.0.0.0", port = 9001, reload = True) 
 
 
 if __name__ == "__main__": 

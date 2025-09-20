@@ -38,7 +38,13 @@ encoded_model = SentenceTransformer("app/all-mpnet-base-v2-local")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000" ,  "http://127.0.0.1:3000"],  # or ["http://localhost:3000"] for stricter rules
+    allow_origins=[
+        "http://13.127.7.32",       # if HTTP
+        "https://13.127.7.32",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://13.127.7.32:3000"  # add your EC2 frontend URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,7 +52,7 @@ app.add_middleware(
 
 
 # client = QdrantClient(host="optimistic_greider", port=6333)
-client = QdrantClient(host =  "localhost", port = 6333)  # its for testing
+client = QdrantClient(host =  "qdrant", port = 6333)  # its for testing
 
 
 #
@@ -146,7 +152,7 @@ async def get_current_user(authorization : str = Header(...)):
 
         return payload["user_id"] 
     
-    except Exception as e: 
+    except Exception: 
         return HTTPException(status_code=401, detail="invalid or expire token")
 
 
@@ -273,7 +279,7 @@ async def get_page(user_id : int = Depends(get_current_user) ,db: Session = Depe
 
 
 def main():
-    uvicorn.run("mainb:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run("mainb:app", host="0.0.0.0", port=8001, reload=True)
 
 
 # ✅ This makes sure it only runs when you do `python main.py`
